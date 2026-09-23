@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A64C4474-2BC5-4BC4-AB4B-8832B84D9AEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialDebugTool", "src\SerialDebugTool\SerialDebugTool.csproj", "{ACCDCC27-E609-49F9-9FB8-2311499766F8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1BB6D354-0554-4C0F-81F5-3A4391C113DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmokeTest", "tests\SmokeTest\SmokeTest.csproj", "{34FCC2C7-7067-4C02-935C-6F4781464D33}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ACCDCC27-E609-49F9-9FB8-2311499766F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACCDCC27-E609-49F9-9FB8-2311499766F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACCDCC27-E609-49F9-9FB8-2311499766F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACCDCC27-E609-49F9-9FB8-2311499766F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34FCC2C7-7067-4C02-935C-6F4781464D33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34FCC2C7-7067-4C02-935C-6F4781464D33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34FCC2C7-7067-4C02-935C-6F4781464D33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34FCC2C7-7067-4C02-935C-6F4781464D33}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ACCDCC27-E609-49F9-9FB8-2311499766F8} = {A64C4474-2BC5-4BC4-AB4B-8832B84D9AEB}
+		{34FCC2C7-7067-4C02-935C-6F4781464D33} = {1BB6D354-0554-4C0F-81F5-3A4391C113DC}
+	EndGlobalSection
+EndGlobal

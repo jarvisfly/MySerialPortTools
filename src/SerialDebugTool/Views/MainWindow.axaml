@@ -1,0 +1,289 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="using:SerialDebugTool.Converters"
+        mc:Ignorable="d"
+        x:Name="RootWindow"
+        x:Class="SerialDebugTool.Views.MainWindow"
+        Title="串口调试工具 · Avalonia MVVM"
+        Width="1380" Height="840" MinWidth="980" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        FontSize="13">
+
+  <Window.Resources>
+    <conv:DirectionToBrushConverter x:Key="DirBrush" />
+    <conv:BoolToTextConverter x:Key="BoolToText" />
+    <conv:InverseBoolConverter x:Key="InvBool" />
+  </Window.Resources>
+
+  <Grid ColumnDefinitions="*,Auto,Auto">
+
+    <!-- ==================== 左侧：上=日志，下=串口设置与发送 ==================== -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,3*,Auto,Auto" Margin="8,8,4,8">
+
+      <!-- 日志工具条 -->
+      <Border Grid.Row="0" Classes="card" Margin="0,0,0,6">
+        <WrapPanel Orientation="Horizontal">
+          <TextBlock Text="收发日志" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
+          <Button Classes="toolbar" Content="清空日志" Command="{Binding ClearLogCommand}" Margin="0,0,6,0" />
+          <Button Classes="toolbar" Content="保存日志" Command="{Binding SaveLogCommand}" Margin="0,0,6,0" />
+          <Button Classes="toolbar" Content="配置目录" Command="{Binding OpenConfigFolderCommand}" Margin="0,0,12,0" />
+          <CheckBox Content="Hex 显示" IsChecked="{Binding HexDisplay}" Margin="0,0,10,0" />
+          <CheckBox Content="显示时间" IsChecked="{Binding ShowTimestamp}" Margin="0,0,10,0" />
+          <CheckBox Content="自动滚动" IsChecked="{Binding AutoScroll}" Margin="0,0,10,0" />
+          <CheckBox Content="发送" IsChecked="{Binding ShowTx}" Margin="0,0,6,0" />
+          <CheckBox Content="接收" IsChecked="{Binding ShowRx}" Margin="0,0,6,0" />
+          <CheckBox Content="系统" IsChecked="{Binding ShowSys}" Margin="0,0,12,0" />
+          <TextBox Width="180" Watermark="日志过滤关键字" Text="{Binding LogFilter, UpdateSourceTrigger=PropertyChanged}" />
+        </WrapPanel>
+      </Border>
+
+      <!-- 日志列表 -->
+      <ListBox x:Name="LogList" Grid.Row="1"
+               ItemsSource="{Binding Logs}"
+               Background="#FF1B1B1B"
+               BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+               BorderThickness="1"
+               CornerRadius="4"
+               Padding="6"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Classes="mono" Text="{Binding TimeText}" Foreground="#FF8C8C8C"
+                         IsVisible="{Binding ElementName=RootWindow, Path=DataContext.ShowTimestamp}" />
+              <TextBlock Classes="mono" Text="{Binding DirectionText}" Width="54"
+                         Foreground="{Binding Direction, Converter={StaticResource DirBrush}}" />
+              <TextBlock Classes="mono" Text="{Binding Content}" TextWrapping="Wrap"
+                         Foreground="{Binding Direction, Converter={StaticResource DirBrush}}" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <GridSplitter Grid.Row="2" Height="7" ResizeDirection="Rows"
+                    HorizontalAlignment="Stretch" Background="Transparent" />
+
+      <!-- 下半部分：串口设置 + 发送区 -->
+      <Border Grid.Row="3" Classes="card" MinHeight="200">
+        <StackPanel Spacing="8">
+
+          <!-- 串口参数 -->
+          <WrapPanel Orientation="Horizontal">
+            <TextBlock Classes="caption" Text="串口" Margin="0,0,4,0" />
+            <ComboBox Width="130" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPortName}"
+                      IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="波特率" Margin="0,0,4,0" />
+            <AutoCompleteBox Width="100" ItemsSource="{Binding BaudRateOptions}" Text="{Binding BaudRateText}"
+                             IsTextCompletionEnabled="False" FilterMode="Contains"
+                             IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="数据位" Margin="0,0,4,0" />
+            <ComboBox Width="66" ItemsSource="{Binding DataBitsOptions}" SelectedItem="{Binding SelectedDataBits}"
+                      IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="校验位" Margin="0,0,4,0" />
+            <ComboBox Width="80" ItemsSource="{Binding ParityOptions}" SelectedItem="{Binding SelectedParity}"
+                      IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="停止位" Margin="0,0,4,0" />
+            <ComboBox Width="100" ItemsSource="{Binding StopBitsOptions}" SelectedItem="{Binding SelectedStopBits}"
+                      IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="流控" Margin="0,0,4,0" />
+            <ComboBox Width="150" ItemsSource="{Binding HandshakeOptions}" SelectedItem="{Binding SelectedHandshake}"
+                      IsEnabled="{Binding IsPortOpen, Converter={StaticResource InvBool}}" Margin="0,0,8,0" />
+
+            <TextBlock Classes="caption" Text="编码" Margin="0,0,4,0" />
+            <ComboBox Width="120" ItemsSource="{Binding EncodingOptions}" SelectedItem="{Binding SelectedEncoding}"
+                      Margin="0,0,8,0" />
+
+            <Button Classes="toolbar" Content="刷新" Command="{Binding RefreshPortsCommand}" Margin="0,0,6,0" />
+            <Button Classes="toolbar" FontWeight="SemiBold"
+                    Content="{Binding IsPortOpen, Converter={StaticResource BoolToText}, ConverterParameter=关闭串口|打开串口}"
+                    Command="{Binding TogglePortCommand}"
+                    Background="{Binding IsPortOpen, Converter={StaticResource BoolToText}, ConverterParameter=#FF8B2E2E|#FF2E7D32}" />
+          </WrapPanel>
+
+          <!-- 发送输入区 -->
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox Grid.Column="0" x:Name="SendBox"
+                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                     Height="92" VerticalContentAlignment="Top"
+                     Classes="mono"
+                     Watermark="输入要发送的内容；勾选 Hex 发送时按 16 进制解析（如 AA 01 00 55），文本模式支持 \r \n \t \0 转义"
+                     Text="{Binding SendText, UpdateSourceTrigger=PropertyChanged}" />
+
+            <StackPanel Grid.Column="1" Width="210" Margin="8,0,0,0" Spacing="6">
+              <CheckBox Content="Hex 发送" IsChecked="{Binding HexSend}" />
+              <CheckBox Content="发送新行(\r\n)" IsChecked="{Binding AppendNewLine}" />
+
+              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" >
+                <TextBlock Grid.Row="0" Grid.Column="0" Classes="caption" Text="循环标号" Margin="0,0,6,0" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SendLoopCount}" Margin="0,0,0,4" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Classes="caption" Text="延时(ms)" Margin="0,0,6,0" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SendLoopDelayMs}" />
+              </Grid>
+
+              <Grid ColumnDefinitions="*,Auto">
+                <Button Grid.Column="0" Classes="toolbar" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        FontWeight="SemiBold" Background="#FF2E7D32"
+                        Content="发 送" Command="{Binding SendCommand}" />
+                <Button Grid.Column="1" Classes="toolbar" Margin="6,0,0,0"
+                        Content="停止" Command="{Binding StopSendingCommand}"
+                        IsEnabled="{Binding IsSending}" />
+              </Grid>
+              <TextBlock Classes="caption" TextWrapping="Wrap"
+                         Text="循环标号：0 = 只发一次；N = 循环 N 次；-1 = 无限循环" />
+            </StackPanel>
+          </Grid>
+
+          <!-- 状态栏 -->
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Classes="caption" Text="{Binding StatusText}" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Classes="caption" Text="{Binding CounterText}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- ==================== 中间：折叠开关条 ==================== -->
+    <Border Grid.Column="1" Width="24" Margin="0,8,0,8"
+            Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            CornerRadius="4">
+      <StackPanel Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Button Padding="2,6" Background="Transparent" BorderThickness="0"
+                Content="{Binding RightPanelVisible, Converter={StaticResource BoolToText}, ConverterParameter=▶|◀}"
+                Command="{Binding ToggleRightPanelCommand}"
+                ToolTip.Tip="显示 / 隐藏右侧指令列表" />
+      </StackPanel>
+    </Border>
+
+    <!-- ==================== 右侧：两个可隐藏列表 ==================== -->
+    <Grid Grid.Column="2" Width="640" Margin="4,8,8,8" IsVisible="{Binding RightPanelVisible}">
+      <Grid RowDefinitions="Auto,3*,Auto,Auto,2*">
+
+        <!-- 列表1 头部 -->
+        <Border Grid.Row="0" Classes="card" Margin="0,0,0,4">
+          <StackPanel Spacing="4">
+            <WrapPanel Orientation="Horizontal">
+              <TextBlock Text="① 主动发送指令列表" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
+              <Button Classes="toolbar" Content="添加" Command="{Binding AddSendItemCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar" Content="运行勾选项" Command="{Binding RunAllEnabledSendItemsCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar" Content="全部停止" Command="{Binding StopAllCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar" Margin="0,0,0,0"
+                      Content="{Binding List1Visible, Converter={StaticResource BoolToText}, ConverterParameter=隐藏列表|显示列表}"
+                      Command="{Binding ToggleList1Command}" />
+            </WrapPanel>
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="循环标号：0 = 不循环只发一次，N = 循环 N 次，-1 = 无限循环；延时 = 每次发送的间隔毫秒数。" />
+          </StackPanel>
+        </Border>
+
+        <!-- 列表1 -->
+        <DataGrid Grid.Row="1" x:Name="SendGrid"
+                  ItemsSource="{Binding SendCommands}"
+                  IsVisible="{Binding List1Visible}"
+                  AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  CanUserReorderColumns="False"
+                  CanUserSortColumns="False"
+                  GridLinesVisibility="All"
+                  HeadersVisibility="Column"
+                  SelectionMode="Single"
+                  IsReadOnly="False"
+                  RowHeight="32"
+                  FontSize="12">
+          <DataGrid.Columns>
+            <DataGridCheckBoxColumn Header="启用" Width="46" Binding="{Binding IsEnabled, Mode=TwoWay}" />
+            <DataGridTextColumn Header="名称" Width="104" Binding="{Binding Name, Mode=TwoWay}" />
+            <DataGridCheckBoxColumn Header="HEX" Width="46" Binding="{Binding IsHex, Mode=TwoWay}" />
+            <DataGridTextColumn Header="指令" Width="*" Binding="{Binding Command, Mode=TwoWay}" />
+            <DataGridTextColumn Header="循环标号" Width="66" Binding="{Binding LoopCount, Mode=TwoWay}" />
+            <DataGridTextColumn Header="延时(ms)" Width="66" Binding="{Binding DelayMs, Mode=TwoWay}" />
+            <DataGridTextColumn Header="已发" Width="52" IsReadOnly="True" Binding="{Binding SentCount, Mode=OneWay}" />
+            <DataGridTemplateColumn Header="操作" Width="116">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Button Padding="6,2" MinHeight="24" FontSize="12"
+                            Content="{Binding IsRunning, Converter={StaticResource BoolToText}, ConverterParameter=停止|运行}"
+                            Command="{Binding $parent[Window].DataContext.RunSendItemCommand}"
+                            CommandParameter="{Binding}" />
+                    <Button Padding="6,2" MinHeight="24" FontSize="12" Content="删除"
+                            Command="{Binding $parent[Window].DataContext.RemoveSendItemCommand}"
+                            CommandParameter="{Binding}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <GridSplitter Grid.Row="2" Height="7" ResizeDirection="Rows"
+                      HorizontalAlignment="Stretch" Background="Transparent" />
+
+        <!-- 列表2 头部 -->
+        <Border Grid.Row="3" Classes="card" Margin="0,4,0,4">
+          <StackPanel Spacing="4">
+            <WrapPanel Orientation="Horizontal">
+              <TextBlock Text="② 接收自动应答列表" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0" />
+              <CheckBox Content="自动应答" IsChecked="{Binding AutoResponseEnabled}" Margin="0,0,10,0" />
+              <ComboBox Width="104" ItemsSource="{Binding MatchModeOptions}" SelectedItem="{Binding SelectedMatchMode}" Margin="0,0,10,0" />
+              <Button Classes="toolbar" Content="添加" Command="{Binding AddReceiveItemCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar" Content="命中清零" Command="{Binding ClearHitCountsCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar" Content="全部停止" Command="{Binding StopAllCommand}" Margin="0,0,6,0" />
+              <Button Classes="toolbar"
+                      Content="{Binding List2Visible, Converter={StaticResource BoolToText}, ConverterParameter=隐藏列表|显示列表}"
+                      Command="{Binding ToggleList2Command}" />
+            </WrapPanel>
+            <TextBlock Classes="caption" TextWrapping="Wrap"
+                       Text="收到“期待接收指令”后自动发送“应答指令”。包含匹配时在最近 8KB 接收缓冲里查找；命中后缓冲清空并带 20ms 防抖。" />
+          </StackPanel>
+        </Border>
+
+        <!-- 列表2 -->
+        <DataGrid Grid.Row="4" x:Name="RecvGrid"
+                  ItemsSource="{Binding ReceiveCommands}"
+                  IsVisible="{Binding List2Visible}"
+                  AutoGenerateColumns="False"
+                  CanUserResizeColumns="True"
+                  CanUserReorderColumns="False"
+                  CanUserSortColumns="False"
+                  GridLinesVisibility="All"
+                  HeadersVisibility="Column"
+                  SelectionMode="Single"
+                  IsReadOnly="False"
+                  RowHeight="32"
+                  FontSize="12">
+          <DataGrid.Columns>
+            <DataGridCheckBoxColumn Header="启用" Width="46" Binding="{Binding IsEnabled, Mode=TwoWay}" />
+            <DataGridTextColumn Header="名称" Width="92" Binding="{Binding Name, Mode=TwoWay}" />
+            <DataGridCheckBoxColumn Header="HEX" Width="46" Binding="{Binding IsHex, Mode=TwoWay}" />
+            <DataGridTextColumn Header="期待接收指令" Width="*" Binding="{Binding Expected, Mode=TwoWay}" />
+            <DataGridTextColumn Header="接收后自动发送" Width="*" Binding="{Binding Response, Mode=TwoWay}" />
+            <DataGridTextColumn Header="循环标号" Width="66" Binding="{Binding LoopCount, Mode=TwoWay}" />
+            <DataGridTextColumn Header="延时(ms)" Width="66" Binding="{Binding DelayMs, Mode=TwoWay}" />
+            <DataGridTextColumn Header="命中" Width="48" IsReadOnly="True" Binding="{Binding HitCount, Mode=OneWay}" />
+            <DataGridTemplateColumn Header="操作" Width="116">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Button Padding="6,2" MinHeight="24" FontSize="12" Content="测试"
+                            Command="{Binding $parent[Window].DataContext.TestReceiveItemCommand}"
+                            CommandParameter="{Binding}" />
+                    <Button Padding="6,2" MinHeight="24" FontSize="12" Content="删除"
+                            Command="{Binding $parent[Window].DataContext.RemoveReceiveItemCommand}"
+                            CommandParameter="{Binding}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </Grid>
+  </Grid>
+</Window>

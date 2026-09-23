@@ -1,0 +1,14 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+[Dd]ebug/
+[Rr]elease/
+# 运行时生成的本地配置
+settings.json
+send_commands.json
+receive_commands.json
+*.bak
+*.corrupt-*
